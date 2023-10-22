@@ -3,5 +3,24 @@
 {% block title %}Actualización de perfil{% endblock %}
 
 {% block content %}
-{{user.username}}
+<h3>Username: {{user.username}}</h3>
+<h4>e-mail: {{user.email}}</h4><br>
+
+<h2>Completar los datos que faltan</h2>
+<form action="{% url 'user-data' %}" method="POST">
+    {%csrf_token%}
+    <label for="pais">País</label><br>
+    <input type="text" id="pais" name="pais"><br>
+    <label for="provincia">Provincia</label><br>
+    <input type="text" id="provincia" name="provincia"><br>
+    <label for="ciudad">Ciudad</label><br>
+    <input type="text" id="ciudad" name="ciudad"><br>
+    <label for="codigo_postal">Código Postal</label><br>
+    <input type="number" id="codigo_postal" name="codigo_postal"><br>
+    <label for="telefono">Telefono</label><br>
+    <input type="number" id="telefono" name="telefono"><br><br>
+    <input type="submit" value="Actualizar">
+</form>
+<a href="{% url 'user' %}">VOLVER</a>
+
 {% endblock %}

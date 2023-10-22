@@ -9,22 +9,24 @@
     <div class="comic-item">
         <img src="{{comic_picture_full}}" alt="Not Found ...">
     </div>
-    <div class="comic-item">
+    <div class="display-5 text-light">
         <h1>
             {{comic.title}}
         </h1>
-        <h2>
-            {% if comic_desc == "None" %}
-            Descripción no disponible.
-            {% else %}
-            {{comic_desc}}
-            {% endif %}
-        </h2>
-        <div class="price-item">
+        <div class="display-6 align-self-start m-3 p-1">
+            <h2>
+                {% if comic_desc == "#N/A" %}
+                Descripción no disponible.
+                {% else %}
+                {{comic_desc}}
+                {% endif %}
+            </h2>
+        </div>
+        <div class="display-5 text-light-emphasis text-align-end m-3">
             Precio: U$S {{comic.price}}
         </div>
         <div id="grid-buttons">
-            <div class="grid-button-item">
+            <div class="justify-content-md-center">
 
                 <form action="{% url 'checkbutton' %}" method="POST">{%csrf_token%}
 
@@ -44,7 +46,7 @@
                 </form>
                 
             </div>
-            <div class="grid-button-item">
+            <div class="justify-content-md-center">
                 
                 <form action="{% url 'checkbutton' %}" method="POST">{%csrf_token%}
                     

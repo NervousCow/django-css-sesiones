@@ -3,7 +3,39 @@
 {% block title %}Datos de usuaio{% endblock %}
 
 {% block content %}
-<div class="tarea">
+<a class="btn btn-outline-danger" href="{% url 'update' %}">Completar Usuario</a>
+
+<h3>
+    Nombre:
+    <small class="text-light">{{user.first_name}}</small>
+</h3>
+<h3>
+    Apellido:
+    <small class="text-light">{{user.last_name}}</small>
+</h3>
+<h3>
+    Username:
+    <small class="text-light">{{user.username}}</small>
+</h3>
+<h3>
+    E-mail:
+    <small class="text-light">{{user.email}}</small>
+</h3>
+
+<div class="accordion accordion-flush">
+    <div class="accordion-item">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+          Ubicación y telefono:
+        </button>
+      </h2>
+      <div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+        <div class="accordion-body">País: {{user_data.pais}} <br> Provincia: {{user_data.provincia}} <br> Ciudad: {{user_data.ciudad}} <br> Código Postal: {{user_data.codigo_postal}} <br> Teléfono: {{user_data.telefono}}</div>
+      </div>
+    </div>
+
+
+<!-- <div class="tarea">
 
     <h1>Tarea:</h1>
     <h2>1) Realizar la página de detalle de usuario</h2>
@@ -57,5 +89,6 @@
     Modifique el estilo de la página a gusto.
     Puede utilizar el método de su preferencia, ya sea con CSS o con Bootstrap o similar.
 
-</div>
+</div> -->
+
 {% endblock %}
