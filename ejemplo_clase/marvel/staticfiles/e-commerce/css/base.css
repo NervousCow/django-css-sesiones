@@ -19,11 +19,11 @@ body{
     font-family: 'Marvel', sans-serif;
 }
 
-a{
+/* a{
     color:var(--link-color);
     font-family: 'Permanent Marker', cursive;
     font-size: 25px;
-}
+} */
 
 #content{
     color: var(--font-color-red);
@@ -104,24 +104,14 @@ font-size: 20px;
 
 }
 
-.comic-item h1{
-    font-family: 'Permanent Marker', cursive;
-}
 .comic-item h2{
-    font-size: 20px;
     text-align:justify;
-    color:var(--font-color-white);
 }
-.price-item{
-    font-family: 'Permanent Marker', cursive;
-    color:var(--font-color-yellow);
-    font-size: 60px;
-    text-align:right;
-}
+
 #grid-buttons{ 
-    text-align: left;
+    text-align: end;
     display: grid;
-    grid-template-columns: 30% 70%;
+    grid-template-columns: 65% 35%;
 }
 
 .tarea{
