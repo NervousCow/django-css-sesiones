@@ -61,14 +61,14 @@ def get_comics(request):
     else:
         offset = request.GET.get('offset')
     if request.GET.get('limit') == None or request.GET['limit'].isdigit() == False:
-        limit = 15
+        limit = 50
     else:
         limit = request.GET.get('limit')
 
     offset = int(offset)
     limit = int(limit)
-    next = offset + 15
-    previous = offset - 15
+    next = offset + 50
+    previous = offset - 50
 
     # Realizamos el request:
     aditional_params = {'limit': limit, 'offset': offset}
@@ -83,12 +83,13 @@ def get_comics(request):
 
     # Filtramos la lista de comics y nos quedamos con lo que nos interesa:
     for comic in comics_list:
-        id.append(comic.get('id'))
-        description.append(comic.get('description'))
-        title.append(comic.get('title'))
-        prices.append(comic.get('prices')[0].get('price'))
-        thumbnail.append(
-            f"{comic.get('thumbnail').get('path')}/standard_xlarge.jpg")
+        if comic.get('description') and comic.get('prices')[0].get('price'):    # Con esta condición solo voy
+            id.append(comic.get('id'))                                          # a mostrar los comics que
+            description.append(comic.get('description'))                        # tienen precio y descripcion.
+            title.append(comic.get('title'))
+            prices.append(comic.get('prices')[0].get('price'))
+            thumbnail.append(
+                f"{comic.get('thumbnail').get('path')}/standard_xlarge.jpg")
 
     # NOTE: Construimos la tabla, concatenando en un string el código HTML:
 

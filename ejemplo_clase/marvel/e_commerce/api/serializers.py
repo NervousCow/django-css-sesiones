@@ -10,7 +10,7 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
 # Primero importamos los modelos que queremos serializar:
-from e_commerce.models import Comic, WishList
+from e_commerce.models import Comic, WishList, UserData, Compra, ComicCompra
 
 
 class ComicSerializer(serializers.ModelSerializer):
@@ -240,3 +240,34 @@ class WishListSerializer(serializers.ModelSerializer):
             'bought_qty'
         )
         read_only_fields = ('id',)
+
+class UserDataSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = UserData
+        fields = (
+            'pais',
+            'provincia',
+            'ciudad',
+            'codigo_postal',
+            'telefono',
+        )
+        extra_kwargs = {
+            'pais': {'required': False},
+            'provincia': {'required': False},
+            'ciudad': {'required': False},
+            'codigo_postal': {'required': False},
+            'telefono': {'required': False},
+        }
+
+class CompraSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Compra
+        fields = '__all__'
+
+class ComicCompraSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ComicCompra
+        fields = '__all__'

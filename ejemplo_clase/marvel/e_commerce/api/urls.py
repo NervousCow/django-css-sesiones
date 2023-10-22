@@ -34,4 +34,10 @@ urlpatterns = [
 
     # User API Viewsets:
     path('api/', include('e_commerce.api.routers')),
+
+    # UserData API View
+    path('user-data', PostUserDataAPIView.as_view(), name='user-data'),
+
+    # View para la compra y ese quilombo
+    path('carrito', CompraView.as_view(), name='carrito')
 ]

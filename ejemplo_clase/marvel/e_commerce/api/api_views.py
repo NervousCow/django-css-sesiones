@@ -1,7 +1,7 @@
-from django.db.models import Subquery
+from django.db.models import Subquery, F, Sum
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 
 # (GET - ListAPIView) Listar todos los elementos en la entidad:
 # (POST - CreateAPIView) Inserta elementos en la DB
@@ -40,7 +40,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from e_commerce.api.serializers import *
-from e_commerce.models import Comic, WishList
+from e_commerce.models import Comic, WishList, UserData, Compra, ComicCompra
 
 
 mensaje_headder = '''
@@ -432,3 +432,101 @@ class GetUserFavsAPIView(ListAPIView):
         return self.serializer_class.Meta.model.objects.filter(
             pk__in=Subquery(wish_list)
         )
+    
+# class PostUserDataAPIView(CreateAPIView):
+#     __doc__ = f'''{mensaje_headder}'''
+
+#     # queryset = UserData.objects.all()
+#     serializer_class = UserDataSerializer
+#     permission_classes = (IsAuthenticated,)
+
+#     def get_queryset(self):
+#         return UserData.objects.filter(user=self.request.user)
+
+#     def perform_create(self, serializer):
+#         user_data = self.get_queryset().first()
+
+#         if user_data:
+#             serializer.save(user=user_data.user)
+#         else:
+#             serializer.save(user=self.request.user)
+
+#         return redirect('/e-commerce/user')
+    
+class PostUserDataAPIView(APIView):
+    __doc__ = f'''{mensaje_headder}'''
+
+    serializer_class = UserDataSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        user = self.request.user
+        user_data, created = UserData.objects.get_or_create(user=user)
+
+        serializer = self.serializer_class(user_data, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            for atributo in serializer.validated_data.keys():
+                setattr(user_data, atributo, serializer._validated_data[atributo])
+
+            user_data.save()
+            return redirect('/e-commerce/user')
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# AQUI VOY A CREAR LA view DEL MODELO DE COMPRA.
+# En el html el boton confirmar pedido deberá pegarle a
+# esta vista y crear el objeto y guardarlo en la db.
+# Del  mismo modo debería poder ser accedido por el admin
+# para ver los datos guardados (POST y GET)
+
+class CompraView(CreateAPIView):
+    
+    serializer_class = CompraSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        user = request.user
+
+        # Armo una query sobre el modelo WishList filtrando por el usuario loggeado
+        # y por el atributo 'cart' en True. Y con el metodo .select_related() esttoy
+        # haciendo mas eficiente la query salvando el problema hacer muchas querys
+        # por la relación entre los modelos y la data que esta en el modelo Comic
+        # que voy a necesitar para la lógica más adelante.
+        items_carrito = (
+            WishList.objects.filter(user=user, cart=True)
+            .select_related('comic')
+        )
+
+        # Percio total y cantidad total
+        # Usando el metodo 'sum()' que viene en Python y un loop hago la suma del
+        # atributo 'wished_qty' para cada objeto en items_carrito y obetengo la
+        # cantidad total de comics en la compra.
+        # Y lo mismo pero multiplicado por el precio de cada comic para obtener
+        # el monto total de la compra.
+        cantidad_total = sum(item.wished_qty for item in items_carrito)
+        total_precio = sum(item.comic.price * item.wished_qty for item in items_carrito)
+
+        # Ahora tengo que crear los objetos Compra y ComicCompra (ComicCompra es 
+        # como un detalle de la compra, se crea un objeto por cada comic en el carrito)
+
+        compra = Compra.objects.create(
+            user = user,
+            cantidad_total = cantidad_total,
+            total_precio = total_precio
+        )
+
+        for item in items_carrito:
+            ComicCompra.objects.create(
+                compra = compra,
+                comic = item.comic,
+                cantidad = item.wished_qty
+            )
+
+        # El tema de volver a 'False' el atributo 'cart' del modelo
+        # WishList para cada comic comprado... Por lo que lei el metodo
+        # update() tiene el poder para hacer la modificacion a todos los
+        # objetos de una query. Quedaría así:
+        items_carrito.update(cart = False, wished_qty = 0)
+
+        return redirect('thanks')
+

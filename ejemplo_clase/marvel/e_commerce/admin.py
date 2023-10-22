@@ -38,3 +38,12 @@ class wish_listAdmin(admin.ModelAdmin):
     list_display = ('user', 'comic', 'favorite', 'cart')
     list_display_links = ('user', 'comic')
     list_filter= ('favorite','cart')
+
+@admin.register(Compra)
+class CompraAdmin(admin.ModelAdmin):
+    list_display = ('user', 'cantidad_total', 'total_precio')
+
+@admin.register(ComicCompra)
+class ComicCompraAdmin(admin.ModelAdmin):
+    list_display = ('compra', 'comic', 'cantidad')
+    list_filter = ('compra',)

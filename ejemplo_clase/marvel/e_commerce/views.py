@@ -9,6 +9,8 @@ from e_commerce.models import *
 
 # Formulario de registro:
 from django import forms
+from django.db.models import F, ExpressionWrapper, DecimalField
+from django.urls import reverse
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.contrib.auth.forms import UserCreationForm
@@ -184,7 +186,11 @@ def register(request):
         # Si la petición es de tipo POST, analizamos los datos del formulario:
         # Creamos un objeto de tipo UserForm (la clase que creamos mas arriba)
         # Pasandole los datos del request:
+        
         form = UserForm(request.POST)
+        # La linea de arriba es igual a hacer:
+        # serializer = UserSerializer(data=request.data)
+
         # Luego, utilizamos el método que viene en en la clase UserCreationForm
         # para validar los datos del formulario: 
         [print(VERDE+'',item) for item in form] # NOTE: Imprimimos para ver el contenido del formulario COMPLETO
@@ -296,6 +302,7 @@ def check_button(request):
             # Remplazamos el estado del botón seleccionado:
             if type_button == "cart":
                 wish_obj.cart = not actual_value
+                wish_obj.wished_qty = 1
                 wish_obj.save()
                 print('wish_obj.cart :', wish_obj.cart)
             elif type_button == "favorite":
@@ -336,11 +343,31 @@ class CartView(TemplateView):
         username = self.request.user
         user_obj = User.objects.get(username=username)
         wish_obj = WishList.objects.filter(user=user_obj, cart=True)
-        cart_items = [obj.comic for obj in wish_obj]
+
+        cart_items = (
+            wish_obj.select_related('comic')
+            .annotate(
+                wished_qty_annotation=F('wished_qty'),
+                total_price=ExpressionWrapper(
+                    F('wished_qty') * F('comic__price'),
+                    output_field=DecimalField(max_digits=10, decimal_places=2)
+                )
+            )
+        )
+
+        total_price = sum([item.total_price for item in cart_items])
+        
         context['cart_items'] = cart_items
-        context['total_price'] = round((sum([float(comic.price) for comic in cart_items])), 2)
-        print(context['cart_items'])
+        context['total_price'] = round(total_price, 2)
+        
         return context
+    
+
+        # cart_items = [obj.comic for obj in wish_obj]
+        # context['cart_items'] = cart_items
+        # context['total_price'] = round((sum([float(comic.price) for comic in cart_items])), 2)
+        # print(context['cart_items'])
+        # return context
 
 
 class WishView(TemplateView):
@@ -391,7 +418,39 @@ class UserView(TemplateView):
     def get_context_data(self, **kwargs):
         # TODO: Realizar la lógica que lista los datos del usuario, 
         # incluyendo los datos de la tabla de datos adicionales de usuario.
-        return super().get_context_data(**kwargs)
+
+        context = super().get_context_data(**kwargs)
+        user_data = UserData.objects.filter(user=self.request.user).first()
+
+        context['user_data'] = user_data
+        
+        return context
+    
+
+def update_wished_qty(request, comic_id):
+    if request.method == 'POST':
+        wished_qty = request.POST.get('wished_qty')
+        # Validate wished_qty here to ensure it's a positive integer.
+        # You can use try-except to handle validation errors.
+        try:
+            wished_qty = int(wished_qty)
+            if wished_qty < 1:
+                raise ValueError("Wished quantity must be a positive integer.")
+        except ValueError:
+            # Handle validation error, e.g., show an error message.
+            pass
+        else:
+            wished_comic = WishList.objects.get(comic=comic_id)
+            wished_comic.wished_qty = wished_qty
+            wished_comic.save()
+            # Update the wished_qty in your database (e.g., in the Wishlist model).
+            # You can use the comic_id to identify the comic.
+            
+            # After updating the wished_qty, redirect to the cart page.
+            return redirect('cart')
+    
+    # Handle GET request or form validation errors by redirecting to the comic detail page.
+    return redirect('detail', comic_id=comic_id)
 
 
 # NOTE: Vistas con Bootstrap:

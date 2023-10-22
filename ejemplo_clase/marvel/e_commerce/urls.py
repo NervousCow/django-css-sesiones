@@ -67,6 +67,7 @@ urlpatterns = [
      path('cart', login_required(CartView.as_view()), name='cart'),
      # NOTE: Formularios ocultos
      path('checkbutton', check_button, name='checkbutton'),
+     path('update-qty/<int:comic_id>', update_wished_qty, name='update_wished_qty'),
      # NOTE: Ejemplos de Bootstrap HTML:
      path(
           'bootstrap-login',
